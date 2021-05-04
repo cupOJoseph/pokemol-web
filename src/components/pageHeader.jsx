@@ -21,6 +21,7 @@ const PageHeader = ({
           fontFamily='heading'
           fontWeight={700}
           mr={10}
+          title={customTerms ? header : null}
         >
           {customTerms ? getTerm(customTerms, header) : header}
         </Box>

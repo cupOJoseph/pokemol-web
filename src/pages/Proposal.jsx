@@ -54,7 +54,7 @@ const Proposal = ({
                   w='20px'
                   mr={2}
                 />
-                <TextBox size={['sm', null, null, 'md']}>
+                <TextBox size={['sm', null, null, 'md']} title={customTerms ? 'proposals' : null}>
                   {`All ${getTerm(customTerms, 'proposals')}`}
                 </TextBox>
               </Flex>
