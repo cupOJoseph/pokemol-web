@@ -72,7 +72,6 @@ const DaoRouter = () => {
 
   return (
     <Layout dao={dao} daosquarecco={daosquarecco}>
-
       <Switch>
         <Route exact path={`${path}/`}>
           <Overview
@@ -87,7 +86,6 @@ const DaoRouter = () => {
           />
         </Route>
         <Route exact path={`${path}/proposals`}>
-
           <Proposals
             proposals={daoActivities?.proposals}
             overview={daoOverview}
@@ -165,10 +163,7 @@ const DaoRouter = () => {
             refetchMetaData={refetchMetaData}
           />
         </Route>
-        <Route
-          exact
-          path={`${path}/settings/minion/:minion`}
-        >
+        <Route exact path={`${path}/settings/minion/:minion`}>
           <Minion
             overview={daoOverview}
             members={daoMembers}
@@ -189,7 +184,6 @@ const DaoRouter = () => {
         <Route
           exact
           path={`${path}/settings/minion-safe`} // path={`${path}/settings/minion/:minion(\b0x[0-9a-f]{10,40}\b)`}
-
         >
           <MinionSafe
             daoOverview={daoOverview}

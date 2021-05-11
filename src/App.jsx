@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { lazy } from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 
 import { UserContextProvider } from './contexts/UserContext';

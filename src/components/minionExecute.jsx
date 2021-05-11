@@ -205,7 +205,6 @@ const MinionExecute = ({ proposal }) => {
     }
   };
 
-
   const isCorrectChain =
     daochain === injectedProvider?.currentProvider?.chainId;
 
@@ -243,7 +242,6 @@ const MinionExecute = ({ proposal }) => {
         Execute Minion
       </Button>
     );
-
   };
 
   return (
