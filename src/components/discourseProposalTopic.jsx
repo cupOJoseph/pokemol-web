@@ -32,7 +32,7 @@ const DiscourseProposalTopic = ({ proposal, daoMember }) => {
         daoMetaData.boosts.discourse.metadata.categoryId,
       );
 
-      const topicMatch = topicsRes.find((topic) => {
+      const topicMatch = topicsRes.find(topic => {
         const propId = topic.title.split(':')[0];
         return propId === proposal.proposalId;
       });
@@ -65,6 +65,7 @@ const DiscourseProposalTopic = ({ proposal, daoMember }) => {
         network: injectedChain.network,
         signature,
       },
+      autoOverride: true,
     });
 
     if (discourseRes.error) {
@@ -100,8 +101,8 @@ const DiscourseProposalTopic = ({ proposal, daoMember }) => {
                     address,
                     daochain,
                     injectedChain?.chainId,
-                  )
-                    && +daoMember?.shares > 0 && (
+                  ) &&
+                    +daoMember?.shares > 0 && (
                       <Button
                         as={HStack}
                         size='sm'
@@ -111,7 +112,7 @@ const DiscourseProposalTopic = ({ proposal, daoMember }) => {
                         <Icon as={FaDiscourse} w={4} mr={1} />
                         <Box>Add a Discourse Topic for this proposal</Box>
                       </Button>
-                  )}
+                    )}
 
                   {error && <Text>{error}</Text>}
                 </>

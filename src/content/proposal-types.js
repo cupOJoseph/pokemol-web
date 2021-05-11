@@ -1,5 +1,6 @@
 import { getTerm } from '../utils/metadata';
 import swordImg from '../assets/img/swords-white.svg';
+import { hasMinion } from '../utils/dao';
 
 export const proposalTypes = (customTerms, boosts, minions) => {
   const daoPropTypes = boosts?.proposalTypes?.metadata;
@@ -45,7 +46,15 @@ export const proposalTypes = (customTerms, boosts, minions) => {
       proposalType: 'minion',
       image: swordImg,
       comingSoon: false,
-      show: minions > 0,
+      show: hasMinion(minions, 'vanilla minion'),
+    },
+    {
+      name: 'Superfluid',
+      subhead: 'Streaming money minion',
+      proposalType: 'superfluidMinion',
+      image: swordImg,
+      comingSoon: false,
+      show: hasMinion(minions, 'Superfluid minion'),
     },
     {
       name: 'Transmutation',

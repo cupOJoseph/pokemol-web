@@ -1,6 +1,10 @@
 import React, { lazy } from 'react';
 import {
-  Switch, Route, useRouteMatch, useParams,
+  Switch,
+  Route,
+  useRouteMatch,
+  useParams,
+  useLocation,
 } from 'react-router-dom';
 
 import { useDao } from '../contexts/DaoContext';
@@ -25,12 +29,15 @@ import Notifications from '../pages/Notifications';
 import DiscourseSettings from '../pages/DiscourseSettings';
 import ProposalTypes from '../pages/ProposalTypes';
 import MinionSafe from '../pages/MinionSafe';
+import SuperfluidMinion from '../pages/SuperfluidMinion';
 import CcoContribution from '../pages/CcoContribution';
 import CcoHelper from '../pages/CcoHelper';
 import Staking from '../pages/Staking';
 import Clone from '../pages/Clone';
 import MintGate from '../pages/MintGate';
 import Snapshot from '../pages/Snapshot';
+import CcoAdmin from '../pages/CcoAdmin';
+import { isDaosquareCcoPath } from '../utils/cco';
 
 const Proposals = lazy(() => import('../pages/Proposals'));
 const Bank = lazy(() => import('../pages/Bank'));
@@ -38,6 +45,7 @@ const Members = lazy(() => import('../pages/Members'));
 
 const DaoRouter = () => {
   const { path } = useRouteMatch();
+  const location = useLocation();
   const { currentDaoTokens } = useToken();
 
   const {
@@ -59,8 +67,11 @@ const DaoRouter = () => {
     customTerms,
     daoProposals,
   };
+
+  const daosquarecco = isDaosquareCcoPath(daoMetaData, location);
+
   return (
-    <Layout dao={dao}>
+    <Layout dao={dao} daosquarecco={daosquarecco}>
 
       <Switch>
         <Route exact path={`${path}/`}>
@@ -166,7 +177,19 @@ const DaoRouter = () => {
         </Route>
         <Route
           exact
-          path={`${path}/settings/minion-safe`}
+          path={`${path}/settings/superfluid-minion/:minion`} // path={`${path}/settings/superfluid-minion/:minion(\b0x[0-9a-f]{10,40}\b)`}
+        >
+          <SuperfluidMinion
+            activities={daoActivities}
+            overview={daoOverview}
+            daoMember={daoMember}
+            members={daoMembers}
+          />
+        </Route>
+        <Route
+          exact
+          path={`${path}/settings/minion-safe`} // path={`${path}/settings/minion/:minion(\b0x[0-9a-f]{10,40}\b)`}
+
         >
           <MinionSafe
             daoOverview={daoOverview}
@@ -218,11 +241,7 @@ const DaoRouter = () => {
           />
         </Route>
         <Route exact path={`${path}/uberhaus/clone`}>
-          <Clone
-            daoMembers={daoMembers}
-            daoOverview={daoOverview}
-            isUberHaus
-          />
+          <Clone daoMembers={daoMembers} daoOverview={daoOverview} isUberHaus />
         </Route>
         <Route exact path={`${path}/uberhaus/proposals/new`}>
           <NewProposal
@@ -238,11 +257,17 @@ const DaoRouter = () => {
             daoProposals={daoProposals}
           />
         </Route>
-        <Route exact path={`${path}/cco/spy`}>
+        <Route exact path={`${path}/cco/watcher`}>
           <CcoHelper
             daoMetaData={daoMetaData}
             currentDaoTokens={currentDaoTokens}
             daoProposals={daoProposals}
+          />
+        </Route>
+        <Route exact path={`${path}/cco/admin/`}>
+          <CcoAdmin
+            daoMetaData={daoMetaData}
+            isCorrectNetwork={isCorrectNetwork}
           />
         </Route>
         <Route exact path={`${path}/boost/mintgate`}>

@@ -3,10 +3,9 @@ import { Box, Flex } from '@chakra-ui/react';
 import WrongNetworkToolTip from './wrongNetworkToolTip';
 import { getTerm } from '../utils/metadata';
 import Web3SignIn from './web3SignIn';
+import DaosquareHeader from './daoSquareHeader';
 
-const PageHeader = ({
-  isDao, header, headerEl, customTerms,
-}) => {
+const PageHeader = ({ isDao, isDaosquare, header, headerEl, customTerms }) => {
   return (
     <Flex direction='row' justify='space-between' p={6}>
       <Flex
@@ -17,7 +16,6 @@ const PageHeader = ({
       >
         <Box
           fontSize={['lg', null, null, '3xl']}
-          color='#ffffff'
           fontFamily='heading'
           fontWeight={700}
           mr={10}
@@ -25,6 +23,7 @@ const PageHeader = ({
           {customTerms ? getTerm(customTerms, header) : header}
         </Box>
         {headerEl}
+        {isDaosquare && <DaosquareHeader />}
       </Flex>
       <Flex
         direction='row'

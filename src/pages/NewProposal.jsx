@@ -11,7 +11,7 @@ import { getTerm } from '../utils/metadata';
 import ComingSoonOverlay from '../components/comingSoonOverlay';
 import MainViewLayout from '../components/mainViewLayout';
 
-const validProposalType = (type) => {
+const validProposalType = type => {
   return [
     'member',
     'funding',
@@ -20,6 +20,7 @@ const validProposalType = (type) => {
     'trade',
     'lootgrab',
     'minion',
+    'superfluidMinion',
     'transmutation',
   ].includes(type);
 };
@@ -49,18 +50,10 @@ const NewProposal = ({ customTerms, daoMetaData, daoOverview }) => {
 
   useEffect(() => {
     if (daoMetaData?.boosts?.proposalTypes?.active) {
-      proposalTypes(
-        customTerms,
-        daoMetaData?.boosts,
-        daoOverview?.minions?.length,
-      );
+      proposalTypes(customTerms, daoMetaData?.boosts, daoOverview?.minions);
     }
     setActiveProposalTypes(
-      proposalTypes(
-        customTerms,
-        daoMetaData?.boosts,
-        daoOverview?.minions?.length,
-      ),
+      proposalTypes(customTerms, daoMetaData?.boosts, daoOverview?.minions),
     );
   }, [customTerms, daoMetaData, daoOverview]);
 
@@ -81,7 +74,7 @@ const NewProposal = ({ customTerms, daoMetaData, daoOverview }) => {
             justify='space-around'
             align='center'
           >
-            {activeProposalTypes?.map((p) => {
+            {activeProposalTypes?.map(p => {
               return (
                 p.show && (
                   <Box
@@ -96,7 +89,8 @@ const NewProposal = ({ customTerms, daoMetaData, daoOverview }) => {
                       border: '1px solid #7579C5',
                       cursor: 'pointer',
                     }}
-                    w='160px'
+                    border='1px solid transparent'
+                    minW='160px'
                     h='200px'
                     p={2}
                     m={1}
@@ -123,6 +117,7 @@ const NewProposal = ({ customTerms, daoMetaData, daoOverview }) => {
                       fontFamily='heading'
                       color='white'
                       textAlign='center'
+                      maxW='150px'
                     >
                       {p.subhead}
                     </Box>

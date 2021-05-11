@@ -1,5 +1,5 @@
 import React, { useContext, createContext, useState } from 'react';
-import { ChakraProvider } from '@chakra-ui/react';
+import { ChakraProvider, ColorModeScript } from '@chakra-ui/react';
 import { createTheme, useDefault } from '../themes/theme';
 import { OverlayProvider } from './OverlayContext';
 
@@ -9,12 +9,12 @@ export const CustomThemeProvider = ({ children }) => {
   const [theme, setTheme] = useState(useDefault);
   const [tempTheme, setTempTheme] = useState(null);
 
-  const updateTheme = (themeData) => {
+  const updateTheme = themeData => {
     const newTheme = createTheme(themeData);
     setTheme(newTheme);
   };
 
-  const updateTempTheme = (updatedTheme) => {
+  const updateTempTheme = updatedTheme => {
     setTempTheme(updatedTheme);
   };
 
@@ -23,11 +23,16 @@ export const CustomThemeProvider = ({ children }) => {
   return (
     <CustomThemeContext.Provider
       value={{
-        theme, updateTheme, tempTheme, updateTempTheme, resetTheme,
+        theme,
+        updateTheme,
+        tempTheme,
+        updateTempTheme,
+        resetTheme,
       }}
     >
       <ChakraProvider theme={theme}>
         <OverlayProvider>{children}</OverlayProvider>
+        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
       </ChakraProvider>
     </CustomThemeContext.Provider>
   );
@@ -42,6 +47,10 @@ export const useCustomTheme = () => {
     resetTheme,
   } = useContext(CustomThemeContext);
   return {
-    theme, updateTheme, tempTheme, updateTempTheme, resetTheme,
+    theme,
+    updateTheme,
+    tempTheme,
+    updateTempTheme,
+    resetTheme,
   };
 };

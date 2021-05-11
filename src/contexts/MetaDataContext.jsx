@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 
 import { useParams } from 'react-router-dom';
+import { daosquareCcoTheme } from '../themes/defaultTheme';
 import { fetchMetaData } from '../utils/metadata';
 
 import { useCustomTheme } from './CustomThemeContext';
@@ -33,14 +34,16 @@ export const MetaDataProvider = ({ children }) => {
   useEffect(() => {
     if (userHubDaos) {
       const daoMeta = userHubDaos
-        ?.find((network) => network.networkID === daochain)
-        ?.data.find((dao) => {
+        ?.find(network => network.networkID === daochain)
+        ?.data.find(dao => {
           return dao.meta?.contractAddress === daoid;
         })?.meta;
 
       if (daoMeta && shouldUpdateTheme.current) {
         if (daoMeta.customTheme) {
           updateTheme(daoMeta.customTheme);
+        } else if (daoMeta.daosquarecco) {
+          updateTheme(daosquareCcoTheme);
         } else {
           resetTheme();
         }
@@ -60,6 +63,8 @@ export const MetaDataProvider = ({ children }) => {
         if (shouldUpdateTheme.current && !daoMetaData) {
           if (data.customTheme) {
             updateTheme(data.customTheme);
+          } else if (data.daosquarecco) {
+            updateTheme(daosquareCcoTheme);
           } else {
             resetTheme();
           }
@@ -84,6 +89,8 @@ export const MetaDataProvider = ({ children }) => {
       if (shouldUpdateTheme.current && !daoMetaData) {
         if (data.customTheme) {
           updateTheme(data.customTheme);
+        } else if (data.daosquarecco) {
+          updateTheme(daosquareCcoTheme);
         } else {
           resetTheme();
         }

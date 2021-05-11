@@ -2,19 +2,22 @@ import { graphQuery } from './apollo';
 import { ADDRESS_BALANCES, BANK_BALANCES } from '../graphQL/bank-queries';
 import { DAO_ACTIVITIES, HOME_DAO } from '../graphQL/dao-queries';
 import { MEMBERS_LIST } from '../graphQL/member-queries';
-import { proposalResolver, daoResolver } from './resolvers';
+import {
+  proposalResolver,
+  daoResolver,
+  daosqaureCcoDaoResolver,
+} from './resolvers';
 import { getGraphEndpoint, supportedChains } from './chain';
 import { fetchTokenData } from './tokenValue';
 import { omit } from './general';
 import { UBERHAUS_QUERY, UBER_MINIONS } from '../graphQL/uberhaus-queries';
 import { UBERHAUS_DATA } from './uberhaus';
-import { getApiMetadata } from './metadata';
+import { getApiMetadata, getDateTime } from './metadata';
+import { CCO_CONSTANTS } from './cco';
 
 export const graphFetchAll = async (args, items = [], skip = 0) => {
   try {
-    const {
-      endpoint, query, variables, subfield,
-    } = args;
+    const { endpoint, query, variables, subfield } = args;
     const result = await graphQuery({
       endpoint,
       query,
@@ -34,7 +37,7 @@ export const graphFetchAll = async (args, items = [], skip = 0) => {
   }
 };
 
-export const fetchBankValues = async (args) => {
+export const fetchBankValues = async args => {
   return graphFetchAll({
     endpoint: getGraphEndpoint(args.chainID, 'stats_graph_url'),
     query: BANK_BALANCES,
@@ -45,7 +48,7 @@ export const fetchBankValues = async (args) => {
   });
 };
 
-export const fetchUberHausData = async (args) => {
+export const fetchUberHausData = async args => {
   return graphQuery({
     endpoint: getGraphEndpoint(args.chainID, 'subgraph_url'),
     query: UBERHAUS_QUERY,
@@ -102,14 +105,16 @@ const completeQueries = {
         rageQuits: activity.rageQuits,
         title: activity.title,
         version: activity.version,
-        proposals: activity.proposals.map((proposal) => proposalResolver(proposal, {
-          status: true,
-          title: true,
-          description: true,
-          link: true,
-          hash: true,
-          proposalType: true,
-        })),
+        proposals: activity.proposals.map(proposal =>
+          proposalResolver(proposal, {
+            status: true,
+            title: true,
+            description: true,
+            link: true,
+            hash: true,
+            proposalType: true,
+          }),
+        ),
       };
 
       if (setter.setDaoActivities) {
@@ -207,9 +212,9 @@ export const hubChainQuery = async ({
   const daoMapLookup = (address, chainName) => {
     const daoMatch = metaDataMap[address] || [];
 
-    return daoMatch.find((dao) => dao.network === chainName) || null;
+    return daoMatch.find(dao => dao.network === chainName) || null;
   };
-  buildCrossChainQuery(supportedChains, endpointType).forEach(async (chain) => {
+  buildCrossChainQuery(supportedChains, endpointType).forEach(async chain => {
     try {
       const chainData = await graphQuery({
         endpoint: chain.endpoint,
@@ -218,17 +223,19 @@ export const hubChainQuery = async ({
       });
 
       const withMetaData = chainData?.membersHub
-        .map((dao) => {
+        .map(dao => {
           const withResolvedProposals = {
             ...dao,
             moloch: {
               ...omit('proposals', dao.moloch),
-              proposals: dao.moloch.proposals.map((proposal) => proposalResolver(proposal, {
-                proposalType: true,
-                description: true,
-                title: true,
-                activityFeed: true,
-              })),
+              proposals: dao.moloch.proposals.map(proposal =>
+                proposalResolver(proposal, {
+                  proposalType: true,
+                  description: true,
+                  title: true,
+                  activityFeed: true,
+                }),
+              ),
             },
           };
 
@@ -237,14 +244,15 @@ export const hubChainQuery = async ({
             meta: daoMapLookup(dao?.moloch?.id, chain.apiMatch),
           };
         })
-        .filter((dao) => {
-          const notHiddenAndHasMetaOrIsUnregisteredSummoner = (dao.meta && !dao.meta.hide)
-            || (!dao.meta
-              && variables.memberAddress.toLowerCase() === dao.moloch.summoner);
+        .filter(dao => {
+          const notHiddenAndHasMetaOrIsUnregisteredSummoner =
+            (dao.meta && !dao.meta.hide) ||
+            (!dao.meta &&
+              variables.memberAddress.toLowerCase() === dao.moloch.summoner);
           return notHiddenAndHasMetaOrIsUnregisteredSummoner;
         });
 
-      reactSetter((prevState) => [
+      reactSetter(prevState => [
         ...prevState,
         { ...chain, data: withMetaData },
       ]);
@@ -266,9 +274,9 @@ export const exploreChainQuery = async ({
 
   const daoMapLookup = (address, chainName) => {
     const daoMatch = metaDataMap[address] || [];
-    return daoMatch.find((dao) => dao.network === chainName) || null;
+    return daoMatch.find(dao => dao.network === chainName) || null;
   };
-  buildCrossChainQuery(supportedChains, endpointType).forEach(async (chain) => {
+  buildCrossChainQuery(supportedChains, endpointType).forEach(async chain => {
     try {
       const chainData = await graphFetchAll({
         endpoint: chain.endpoint,
@@ -277,16 +285,16 @@ export const exploreChainQuery = async ({
       });
 
       const withMetaData = chainData
-        .map((dao) => {
+        .map(dao => {
           const withResolvedDao = daoResolver(dao, { prices, chain });
           return {
             ...withResolvedDao,
             meta: daoMapLookup(dao?.id, chain.apiMatch),
           };
         })
-        .filter((dao) => !dao.meta || !dao.meta.hide);
+        .filter(dao => !dao.meta || !dao.meta.hide);
 
-      reactSetter((prevState) => {
+      reactSetter(prevState => {
         return {
           chains: [...prevState.chains, chain],
           data: [...prevState.data, ...withMetaData],
@@ -303,36 +311,73 @@ export const balanceChainQuery = async ({ address, reactSetter }) => {
 
   const daoMapLookup = (address, chainName) => {
     const daoMatch = metaDataMap[address] || [];
-    return daoMatch.find((dao) => dao.network === chainName) || null;
+    return daoMatch.find(dao => dao.network === chainName) || null;
   };
-  buildCrossChainQuery(supportedChains, 'subgraph_url').forEach(
-    async (chain) => {
-      try {
-        const chainData = await graphFetchAll({
-          endpoint: chain.endpoint,
-          query: ADDRESS_BALANCES,
-          subfield: 'addressBalances',
-          variables: {
-            memberAddress: address,
-          },
-        });
+  buildCrossChainQuery(supportedChains, 'subgraph_url').forEach(async chain => {
+    try {
+      const chainData = await graphFetchAll({
+        endpoint: chain.endpoint,
+        query: ADDRESS_BALANCES,
+        subfield: 'addressBalances',
+        variables: {
+          memberAddress: address,
+        },
+      });
 
-        const withMetaData = chainData.map((member) => {
-          return {
-            ...member,
-            meta: daoMapLookup(member.moloch?.id, chain.apiMatch),
-          };
-        });
+      const withMetaData = chainData.map(member => {
+        return {
+          ...member,
+          meta: daoMapLookup(member.moloch?.id, chain.apiMatch),
+        };
+      });
 
-        reactSetter((prevState) => {
-          return {
-            chains: [...prevState.chains, chain],
-            data: [...prevState.data, ...withMetaData],
-          };
-        });
-      } catch (error) {
-        console.error(error);
-      }
-    },
-  );
+      reactSetter(prevState => {
+        return {
+          chains: [...prevState.chains, chain],
+          data: [...prevState.data, ...withMetaData],
+        };
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  });
+};
+
+export const daosqaureCcoQuery = async ({ query, reactSetter, apiFetcher }) => {
+  const chain = supportedChains[CCO_CONSTANTS.DAOSQUARE_NETWORK];
+  const metaDataMap = await apiFetcher();
+
+  const daoMapLookup = (address, chainName) => {
+    const daoMatch = metaDataMap[address] || [];
+    return daoMatch.find(dao => dao.network === chainName) || null;
+  };
+  try {
+    const chainData = await graphFetchAll({
+      endpoint: chain.subgraph_url,
+      query,
+      subfield: 'moloches',
+    });
+
+    const withMetaData = chainData
+      .map(dao => {
+        return {
+          ...dao,
+          meta: daoMapLookup(dao?.id, chain.network),
+        };
+      })
+      .filter(dao => {
+        return dao?.meta?.daosquarecco;
+      });
+
+    const date = await getDateTime();
+    const now = Number(date.seconds);
+
+    const withCcoMeta = withMetaData.map(dao => {
+      return daosqaureCcoDaoResolver(dao, now);
+    });
+
+    reactSetter(withCcoMeta);
+  } catch (error) {
+    console.error(error);
+  }
 };

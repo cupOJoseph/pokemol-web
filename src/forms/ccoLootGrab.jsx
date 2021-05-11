@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import {
-  Button, FormControl, Flex, Icon, Box, Text,
-} from '@chakra-ui/react';
+import { Button, FormControl, Flex, Icon, Box, Text } from '@chakra-ui/react';
 import { RiErrorWarningLine } from 'react-icons/ri';
 import { useParams } from 'react-router-dom';
 
@@ -26,7 +24,6 @@ const CcoLootGrabForm = ({
   roundData,
   currentContributionData,
   contributionClosed,
-  daoMetaData,
 }) => {
   const {
     injectedProvider,
@@ -42,7 +39,7 @@ const CcoLootGrabForm = ({
 
   const [loading, setLoading] = useState(false);
   const [currentError, setCurrentError] = useState(null);
-  const [ratio, setRatio] = useState(1);
+  const lootRatio = 1;
 
   const {
     handleSubmit,
@@ -56,8 +53,6 @@ const CcoLootGrabForm = ({
 
   const currentTribute = watch('tributeOffered');
 
-  // console.log('currentTribute')
-
   useEffect(() => {
     if (Object.keys(errors).length > 0) {
       const newE = Object.keys(errors)[0];
@@ -70,19 +65,12 @@ const CcoLootGrabForm = ({
     }
   }, [errors]);
 
-  useEffect(() => {
-    if (daoMetaData?.boosts?.cco?.active) {
-      const daoRatio = +daoMetaData.boosts.cco.metadata.ratio;
-      setRatio(daoRatio);
-    }
-  });
-
-  const onSubmit = async (values) => {
+  const onSubmit = async values => {
     setLoading(true);
     const hash = createHash();
     const details = detailsToJSON({
       title: 'CCO contribution!',
-      cco: true,
+      cco: roundData.ccoId,
       hash,
     });
     const { tokenBalances, depositToken } = daoOverview;
@@ -96,7 +84,7 @@ const CcoLootGrabForm = ({
     const args = [
       applicant,
       values.sharesRequested || '0',
-      Math.floor(values.tributeOffered * ratio || '0').toString(),
+      Math.floor(values.tributeOffered * lootRatio || '0').toString(),
       tributeOffered,
       tributeToken,
       paymentRequested,
@@ -117,7 +105,7 @@ const CcoLootGrabForm = ({
             resolvePoll(txHash);
             console.error(`Could not find a matching proposal: ${error}`);
           },
-          onSuccess: (txHash) => {
+          onSuccess: txHash => {
             successToast({
               title: 'Contribution Submitted!',
             });
@@ -137,7 +125,10 @@ const CcoLootGrabForm = ({
         chainID: daochain,
         version: daoOverview.version,
       })('submitProposal')({
-        args, address, poll, onTxHash,
+        args,
+        address,
+        poll,
+        onTxHash,
       });
     } catch (err) {
       setLoading(false);
@@ -152,11 +143,11 @@ const CcoLootGrabForm = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Flex justifyContent='space-between' my={3}>
-        <Text fontSize='sm' color='whiteAlpha.700' as='i'>
-          {`${currentContributionData?.addressRemaining
-            || roundData.currentRound.maxContribution}`}
+        <Text fontSize='sm' color='blackAlpha.700' as='i'>
+          {`${currentContributionData?.addressRemaining ||
+            roundData.maxContribution}`}
           /
-          {`${roundData.currentRound.maxContribution} ${roundData.ccoToken.symbol} remaining`}
+          {`${roundData.maxContribution} ${roundData.ccoToken.symbol} remaining`}
         </Text>
       </Flex>
       <FormControl
@@ -179,7 +170,7 @@ const CcoLootGrabForm = ({
           />
         </Box>
         <Text fontSize='sm' color='whiteAlpha.700' as='i' ml={5}>
-          {`will return -> ${+currentTribute / +roundData.claimTokenValue} ${
+          {`will return -> ${+currentTribute * Number(roundData.ratio)} ${
             roundData.claimTokenSymbol
           } `}
         </Text>
@@ -199,6 +190,7 @@ const CcoLootGrabForm = ({
             loadingText='Submitting'
             isLoading={loading}
             disabled={loading || contributionClosed}
+            variant='primary'
           >
             Submit
           </Button>

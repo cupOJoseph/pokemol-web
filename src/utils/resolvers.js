@@ -1,3 +1,4 @@
+import { ccoStatus, currentFunded } from './cco';
 import {
   determineProposalStatus,
   determineProposalType,
@@ -43,13 +44,30 @@ export const daoResolver = (dao, context) => {
     const usdPrice = context.prices[dao.depositToken.tokenAddress] || {
       price: 0,
     };
-    dao.guildBankValue = usdPrice.price
-      * (dao.guildBankBalanceV1 / 10 ** dao.depositToken.decimals);
+    dao.guildBankValue =
+      usdPrice.price *
+      (dao.guildBankBalanceV1 / 10 ** dao.depositToken.decimals);
   } else {
     dao.guildBankValue = getTotalBankValue(dao.tokenBalances, context.prices);
   }
 
   dao.networkId = context.chain.network_id;
+
+  return dao;
+};
+
+export const daosqaureCcoDaoResolver = (dao, now) => {
+  const fundedWei = currentFunded(
+    dao.meta.boosts.daosquarecco.metadata,
+    dao.proposals,
+  );
+  const ccoFundedAmount = fundedWei / 10 ** 18;
+  dao.ccoFundedAmount = ccoFundedAmount;
+  dao.ccoStatus = ccoStatus(
+    dao.meta.boosts.daosquarecco.metadata,
+    ccoFundedAmount,
+    now,
+  );
 
   return dao;
 };
